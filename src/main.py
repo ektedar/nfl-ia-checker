@@ -4,14 +4,6 @@ from typing import TextIO
 import requests
 from bs4 import BeautifulSoup
 
-# STATUSES = [
-#     "Q",
-#     "IA",
-#     "O",
-#     "IR",
-#     "D"
-# ]
-
 STATUSES = {
     "Q": "Questionable",
     "IA": "Inactive",
@@ -51,7 +43,17 @@ def get_login_page(cookie_sess_page: TextIO) -> BeautifulSoup:
     return soup
 
 
-def main():
+def get_players_status() -> dict:
+    """Returns a JSON object of all the players that 
+    have the Questionable, Inactive, Doubtful, Injured
+    Reserved Status.  Only returns the players who are
+    starting.
+
+    Returns
+    -------
+    dict
+        A Dictionary object of all the affected players
+    """
     team_page = get_login_page('login_info.json')
     output = {}
     for code, status in STATUSES.items():
@@ -68,10 +70,23 @@ def main():
 
 
 def _benched(player: BeautifulSoup) -> bool:
+    """Helper function to check if the current player
+    is benched or not
+
+    Parameters
+    ----------
+    player : BeautifulSoup
+        The Soup object of the current player
+
+    Returns
+    -------
+    bool
+        Returns True if benched
+    """
     if player.parent.parent.parent.contents[0].text == "BN":
         return True
     return False
 
 
 if __name__ == "__main__":
-    print(main())
+    print(get_players_status())
