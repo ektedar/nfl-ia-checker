@@ -4,6 +4,22 @@ from typing import TextIO
 import requests
 from bs4 import BeautifulSoup
 
+# STATUSES = [
+#     "Q",
+#     "IA",
+#     "O",
+#     "IR",
+#     "D"
+# ]
+
+STATUSES = {
+    "Q": "Questionable",
+    "IA": "Inactive",
+    "O": "Out",
+    "IR": "Injured Reserved",
+    "D": "Doubtful"
+}
+
 
 def get_login_page(cookie_sess_page: TextIO) -> BeautifulSoup:
     """Returns the login page of the provided session.
@@ -37,8 +53,25 @@ def get_login_page(cookie_sess_page: TextIO) -> BeautifulSoup:
 
 def main():
     team_page = get_login_page('login_info.json')
-    print(team_page.title)
+    output = {}
+    for code, status in STATUSES.items():
+        temp = []
+        affected_players = team_page.find_all("strong",
+                                              string=code)
+
+        for player in affected_players:
+            if not _benched(player):
+                temp.append(player.parent.text)
+        output[status] = temp
+
+    return output
+
+
+def _benched(player: BeautifulSoup) -> bool:
+    if player.parent.parent.parent.contents[0].text == "BN":
+        return True
+    return False
 
 
 if __name__ == "__main__":
-    main()
+    print(main())
